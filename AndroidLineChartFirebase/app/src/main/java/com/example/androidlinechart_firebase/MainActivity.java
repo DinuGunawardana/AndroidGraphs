@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -22,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = "MainActivity";
 
     private LineChart lineChart;
     private DatabaseReference databaseReference;
@@ -46,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
                 submitData();
             }
         });
-
+        
         fetchData();
     }
 
