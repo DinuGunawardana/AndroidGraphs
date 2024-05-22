@@ -1,4 +1,4 @@
-package com.example.androidlinechart_firebase;
+package com.example.androidbarchartfirebase;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,25 +10,26 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-//    private static final String TAG = "MainActivity";
+    private static final String TAG = "MainActivity";
 
-    private LineChart lineChart;
+    private BarChart barChart;
     private DatabaseReference databaseReference;
-    private EditText editTextTimestamp, editTextValue;
+    private EditText editTextValue;
     private Button buttonSubmit;
 
     @Override
@@ -36,8 +37,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        lineChart = findViewById(R.id.lineChart);
-        editTextTimestamp = findViewById(R.id.editTextTimestamp);
+        barChart = findViewById(R.id.barChart);
         editTextValue = findViewById(R.id.editTextValue);
         buttonSubmit = findViewById(R.id.buttonSubmit);
 
@@ -54,44 +54,55 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void submitData() {
-        String timestampStr = editTextTimestamp.getText().toString().trim();
         String valueStr = editTextValue.getText().toString().trim();
 
-        if (timestampStr.isEmpty() || valueStr.isEmpty()) {
-            Toast.makeText(this, "Please enter both timestamp and value", Toast.LENGTH_SHORT).show();
+        if (valueStr.isEmpty()) {
+            Toast.makeText(this, "Please enter a value", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "submitData: Empty value");
             return;
         }
 
-        long timestamp = Long.parseLong(timestampStr);
+        long timestamp = System.currentTimeMillis();
         float value = Float.parseFloat(valueStr);
 
-        DataPoint dataPoint = new DataPoint(timestamp, value);
-        databaseReference.push().setValue(dataPoint);
+        Log.d(TAG, "submitData: Submitting data point - Timestamp: " + timestamp + ", Value: " + value);
 
-        editTextTimestamp.setText("");
+        DataPoint dataPoint = new DataPoint(timestamp, value);
+        databaseReference.push().setValue(dataPoint).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Log.d(TAG, "submitData: Data point submitted successfully");
+            } else {
+                Log.d(TAG, "submitData: Failed to submit data point", task.getException());
+            }
+        });
+
         editTextValue.setText("");
     }
 
     private void fetchData() {
+        Log.d(TAG, "fetchData: Fetching data from Firebase");
+
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                List<Entry> entries = new ArrayList<>();
+                List<BarEntry> entries = new ArrayList<>();
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     DataPoint dataPoint = snapshot.getValue(DataPoint.class);
                     if (dataPoint != null) {
-                        entries.add(new Entry(dataPoint.getTimestamp(), dataPoint.getValue()));
+                        Log.d(TAG, "onDataChange: Data point fetched - Timestamp: " + dataPoint.getTimestamp() + ", Value: " + dataPoint.getValue());
+                        entries.add(new BarEntry(dataPoint.getTimestamp(), dataPoint.getValue()));
                     }
                 }
-                LineDataSet dataSet = new LineDataSet(entries, "Data Points");
-                LineData lineData = new LineData(dataSet);
-                lineChart.setData(lineData);
-                lineChart.invalidate(); // refresh
+                BarDataSet dataSet = new BarDataSet(entries, "Data Points");
+                BarData barData = new BarData(dataSet);
+                barChart.setData(barData);
+                barChart.invalidate(); // refresh
+                Log.d(TAG, "onDataChange: Bar chart updated with new data");
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                // Handle possible errors.
+                Log.d(TAG, "onCancelled: Failed to fetch data", databaseError.toException());
             }
         });
     }
