@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         editTextValue = findViewById(R.id.editTextValue);
         buttonSubmit = findViewById(R.id.buttonSubmit);
 
-        databaseReference = FirebaseDatabase.getInstance().getReference("dataPoints");
+        databaseReference = FirebaseDatabase.getInstance().getReference("bardataPoints");
 
         buttonSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
