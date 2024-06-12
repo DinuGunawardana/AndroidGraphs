@@ -1,0 +1,15 @@
+{
+  "bubbleChartData": {
+    "node1": {
+      "x": 1.0,
+      "y": 2.0,
+      "size": 5.0
+    },
+    "node2": {
+      "x": 2.0,
+      "y": 3.0,
+      "size": 10.0
+    },
+    // Additional nodes...
+  }
+}
